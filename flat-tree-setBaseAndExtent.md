@@ -1,8 +1,16 @@
 # How to change selection.setBaseAndExtent to use Flat Tree Traversal
 
-If we use flat tree traversal in `Range.setStart/setEnd`, to keep it consistent, we would need to change `Selection.setBaseAndExtent` to also use a flat tree traversal. But that would be breaking the existing API.
+If we use flat tree traversal in `Selection.setBaseAndExtent`, to keep it consistent, we would need to change `Range.setStart/setEnd` to also use a flat tree traversal.
 
-I propose adding new API that explicitly uses flat tree traversal:
+## Proposal 1
+
+Change the existing APIs to use flat tree traversal. This means we change the spec steps in `setBaseAndExtent` to use a flat tree traversal to decide which endpoint is the focus vs the anchor node. Similarly, we use a flat tree position comparison for `setStart/setEnd`.
+
+For most use cases, this change would be unnoticeable. But in the case of slotted contents, we will now be using a visual position comparison, which will feel more intuitive to users.
+
+## Proposal 2
+
+If we really cannot change the steps for the existing APIs, I propose we add new API that explicitly uses flat tree traversal:
 
 - Selection.setBaseAndExtentVisual(anchorNode, anchorOffset, focusNode, focusOffset)
 - Range.setStartVisual(startNode, startOffset)
@@ -14,7 +22,7 @@ Alternatively, we can change these APIs to uses a boolean to decide which traver
 - Range.setStart(anchorNode, anchorOffset, focusNode, focusOffset, visual = false)
 - Range.setEnd(anchorNode, anchorOffset, focusNode, focusOffset, visual = false)
 
-These APIs will modify the same Selection/Range, but with different algrithmic steps.
+These APIs will modify the same Selection/Range.
 
 ## Example 1: Slotted to shadowed content
 
