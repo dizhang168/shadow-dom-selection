@@ -3,7 +3,7 @@
 Explainer for supporting Selection across Shadow DOM
 
 Author: Di Zhang
-Last updated: October 2, 2024
+Last updated: October 17, 2024
 
 ## Overview
 

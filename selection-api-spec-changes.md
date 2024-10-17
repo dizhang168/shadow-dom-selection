@@ -34,20 +34,20 @@ An object A is **composed preceding** an object B if A and B are in the same com
 
 An object A is **composed following** an object B if A and B are in the same composed tree and A comes after B in tree order.
 
-### composed-position
+### composed position
 
 Add defintion in [5.2 Boundary points](https://dom.spec.whatwg.org/#boundary-points):
 
-The **composed position** of a boundary point (nodeA, offsetA) relative to a boundary point (nodeB, offsetB) is **composed-before**, **composed-equal**, or **composed-after**, as returned by these steps:
+The **composed position** of a boundary point (nodeA, offsetA) relative to a boundary point (nodeB, offsetB) is **composed before**, **composed equal**, or **composed after**, as returned by these steps:
 
 1. Assert: nodeA and nodeB have the same **shadow-inclusive root**.
 
-2. If nodeA is nodeB, then return _composed-equal_ if offsetA is offsetB, _composed-before_ if offsetA is less than offsetB, and _composed-after_ if offsetA is greater than offsetB.
+2. If nodeA is nodeB, then return _composed equal_ if offsetA is offsetB, _composed before_ if offsetA is less than offsetB, and _composed after_ if offsetA is greater than offsetB.
 3. If nodeA is _composed following_ nodeB:
 
-   1. If the position of (nodeB, offsetB) relative to (nodeA, offsetA) is _composed-before_, return _composed-after_.
+   1. If the position of (nodeB, offsetB) relative to (nodeA, offsetA) is _composed before_, return _composed after_.
 
-   2. Return _composed-before_.
+   2. Return _composed before_.
 
 4. If nodeA is an **shadow-including ancestor** of nodeB:
 
@@ -55,17 +55,17 @@ The **composed position** of a boundary point (nodeA, offsetA) relative to a bou
 
    2. While child is not a child of nodeA, set child to its **composed parent**.
 
-   3. If child’s index is less than offsetA, then return _composed-after_.
+   3. If child’s index is less than offsetA, then return _composed after_.
 
-5. Return _composed-before_.
+5. Return _composed before_.
 
-Question: Not sure if "composed-equal" is necessary to define.
+Question: Not sure if "composed equal" is necessary to define.
 
 ### StaticRange
 
 Add definition after [StaticRange valid](https://dom.spec.whatwg.org/#staticrange).
 
-A StaticRange is **composed-valid** if all of the following are true:
+A StaticRange is **composed valid** if all of the following are true:
 
 - Its start and end are in the same **composed tree**.
 
@@ -73,7 +73,7 @@ A StaticRange is **composed-valid** if all of the following are true:
 
 - Its end offset is between 0 and its end node’s length, inclusive.
 
-- Its start is **composed-before** or **composed-equal** to its end.
+- Its start is **composed before** or **composed equal** to its end.
 
 ### Other HTML spec updates
 
@@ -107,7 +107,7 @@ Spec Proposal:
 
 - Every Selection has a **composed focus**, which defaults to the [focus](https://w3c.github.io/selection-api/#dfn-focus).
 
-Note: We don't need to add a **composed direction** because direction should already be returning the direction by considering endpoints across the composed tree.
+Note: We don't need to add a composed direction because direction should already be returning the direction by considering endpoints across the composed tree.
 
 When Selection API functions modify the Live Range, it should look at potentially modifying the composed focus/anchor.
 If we want to access this information, it will have to be through the getComposedRanges() API, by passing a list of shadow roots we can traverse in.
@@ -120,23 +120,23 @@ For example, we should modify the steps of setBaseAndExtent() by modifying exist
 
 to
 
-7. If focus is **composed-before** anchor, set this's direction to backwards. Otherwise, set it to forwards.
-8. Set this's **composed-focus** to focus and this's **composed-anchor** to anchor.
+7. If focus is **composed before** anchor, set this's direction to backwards. Otherwise, set it to forwards.
+8. Set this's **composed focus** to focus and this's **composed anchor** to anchor.
 
 ### getComposedRanges
 
 We update the existing steps:
 
 2. Otherwise, let startNode be start node of the range associated with this, and let startOffset be start offset of the range.
-   ...
-3. Let endNode be end node of the range associated with this, and let endOffset be end offset of the range.
+3. ...
+4. Let endNode be end node of the range associated with this, and let endOffset be end offset of the range.
 
 to be
 
 2. Otherwise, let startNode and startOffset be the node and offset of the **composed anchor** if direction is "forward" or of the **composed focus** else.
-   ...
-3. Let endNode and endOffset be the node and offset of the **composed focus** if direction is "forward" or of the **composed anchor** else.
+3. ...
+4. Let endNode and endOffset be the node and offset of the **composed focus** if direction is "forward" or of the **composed anchor** else.
 
 ### Other Selection API spec updates
 
-We should update the definiton of **direction** and others that use before/after/equal to use composed-before/composed-after/composed-equal.
+We should update the definiton of **direction** and others that use before/after/equal to use composed before/composed after/composed equal.
