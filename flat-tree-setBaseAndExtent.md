@@ -2,6 +2,16 @@
 
 If we use flat tree traversal in `Selection.setBaseAndExtent`, to keep it consistent, we would need to change `Range.setStart/setEnd` to also use a flat tree traversal.
 
+## A list of API that currently uses a DOM tree traversal
+
+- Selection::setBaseAndExtent
+- Range::setStart/setStartBefore/setStartAfter
+- Range::setEnd/setEndAfter/setEndBefore
+- Range::isPointInRange
+- Range::comparePoint/compareBoundaryPoints
+- Range::intersectsNode
+- Range::commonAncestorContainer
+
 ## Proposal 1
 
 Change the existing APIs to use flat tree traversal. This means we change the spec steps in `setBaseAndExtent` to use a flat tree traversal to decide which endpoint is the focus vs the anchor node. Similarly, we use a flat tree position comparison for `setStart/setEnd`.
@@ -59,9 +69,9 @@ In flat tree traversal:
 
 Note, these present different visual selection across browsers:
 
-1. Blink ![alt text](example-1-blink.png)
-2. Webkit ![alt text](example-1-webkit.png)
-3. Gecko ![alt text](example-1-gecko.png)
+1. Blink ![alt text](resources/example-1-blink.png)
+2. Webkit ![alt text](resources/example-1-webkit.png)
+3. Gecko ![alt text](resources/example-1-gecko.png)
 
 ## Example 2: Slotted to slotted content
 
@@ -106,9 +116,9 @@ In the flat tree API.
 
 Note, these present different visual selection across browsers:
 
-1. Blink ![alt text](example-2-blink.png)
-2. Webkit ![alt text](example-2-webkit.png)
-3. Gecko ![alt text](example-2-gecko.png)
+1. Blink ![alt text](resources/example-2-blink.png)
+2. Webkit ![alt text](resources/example-2-webkit.png)
+3. Gecko ![alt text](resources/example-2-gecko.png)
 
 ## Example 3: Unsolotted to shadowed content
 
@@ -145,6 +155,6 @@ In the flat tree API.
 
 Note, these present different visual selection across browsers:
 
-1. Blink ![alt text](example-3-blink.png)
-2. Webkit ![alt text](example-3-webkit.png)
-3. Gecko ![alt text](example-3-gecko.png)
+1. Blink ![alt text](resources/example-3-blink.png)
+2. Webkit ![alt text](resources/example-3-webkit.png)
+3. Gecko ![alt text](resources/example-3-gecko.png)

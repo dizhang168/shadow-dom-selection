@@ -15,6 +15,10 @@ As of October 2024, all browser implementers agree on adding the new `Selection.
 
 ## Open questions
 
+### Spec changes for getComposedRanges
+
+We need to update Selection API specification to have Composed definitions. See [selection-api-spec-changes](./selection-api-spec-changes.md) for the full proposal.
+
 ### Flat Tree vs Composed Tree
 
 Previously, with the assumption that all selections are within one tree, a DOM traversal is sufficient However, with the idea of a composed tree comes the necessity of re-considering how we traverse and compare the selection points.
@@ -23,20 +27,8 @@ Should we keep using a composed tree or is this API an opportunity to fix the ex
 
 See main issue here: https://github.com/w3c/selection-api/issues/336
 
-#### A list of API that currently uses a DOM tree traversal
-
-- Selection::setBaseAndExtent
-- Range::setStart/setStartBefore/setStartAfter
-- Range::setEnd/setEndAfter/setEndBefore
-- Range::isPointInRange
-- Range::comparePoint/compareBoundaryPoints
-- Range::intersectsNode
-- Range::commonAncestorContainer
-
 See [flat-tree-setBaseAndExtent](./flat-tree-setBaseAndExtent.md) for a proposal on how to extend the API to use flat tree traversal to set selection endpoints. Similar API should be designed for the other API functions.
 
 ### Effect of DOM mutations on the results getComposedRanges()
-
-TBA
 
 See main issue: https://github.com/w3c/selection-api/issues/168
