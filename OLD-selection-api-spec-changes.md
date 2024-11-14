@@ -92,20 +92,27 @@ to
 Github issues:
 
 - [Clarify association between a selection and its range](https://github.com/w3c/selection-api/issues/2)
+- [Need spec changes to Range and StaticRange to support nodes in different tree?](https://github.com/w3c/selection-api/issues/169)
 
-Currently, every document with a browsing context has a unique **selection** associated with it. This selection must be shared by all content of the document.
+Currently, every document with a browsing context has a unique **selection** associated with it. This selection must be shared by all content of the document. Each selection can be associated with a single **range**. Currently, this is a **live range that is scoped within a tree node**. This is a problem because the selection needs to be for the document as a whole, but this live range is not able to cross shadow boundaries.
 
-Each selection can be associated with a single range. Currently, this is a live range that is scoped within a tree node. This is a problem because the selection needs to be for the document as a whole, but this live range is not able to cross shadow boundaries.
+### New Composed anchor and focus
 
-### New Composed selection
-
-We add new concepts, which should determine the Selection inside a composed tree by tracking the selection information across the document in private values. The implementation should be left to the user agent. These values are not exposed to the web user (until we want to introduce future APIs to do so).
+We add new concepts, which should determine the Selection inside a composed tree by tracking the selection information across the document in private values. The implementation is left to the User Agent. These values are not exposed to the web (until we want to introduce future APIs to do so).
 
 Spec Proposal:
 
-- Every Selection has a **composed anchor**, which defaults to the [anchor](https://w3c.github.io/selection-api/#dfn-anchor).
+- Every Selection has a **composed anchor**, which defaults to the [anchor](https://w3c.github.io/selection-api/#dfn-anchor), but can be set and accessed by APIs in the Selection interface.
 
-- Every Selection has a **composed focus**, which defaults to the [focus](https://w3c.github.io/selection-api/#dfn-focus).
+- Every Selection has a **composed focus**, which defaults to the [focus](https://w3c.github.io/selection-api/#dfn-focus), but can be set and accessed by APIs in the Selection interface.
+
+We should also change the NOTE
+
+> anchor and focus of selection need not to be in the document tree. It could be in a shadow tree of the same document.
+
+to
+
+> composed anchor and composed focus of selection need not to be in the document tree. It could be in a shadow tree of the same document.
 
 Note: We don't need to add a composed direction because direction should already be returning the direction by considering endpoints across the composed tree.
 
@@ -114,7 +121,7 @@ If we want to access this information, it will have to be through the getCompose
 
 #### setBaseAndExtent
 
-For example, we should modify the steps of setBaseAndExtent() by modifying existing step:
+We should modify the steps of [setBaseAndExtent()](https://w3c.github.io/selection-api/#dom-selection-setbaseandextent) by changing existing step:
 
 7. If focus is before anchor, set this's direction to backwards. Otherwise, set it to forwards.
 
@@ -125,7 +132,7 @@ to
 
 ### getComposedRanges
 
-We update the existing steps:
+We update the existing steps of [getComposedRanges](https://w3c.github.io/selection-api/#dom-selection-getcomposedranges):
 
 2. Otherwise, let startNode be start node of the range associated with this, and let startOffset be start offset of the range.
 3. ...
@@ -133,9 +140,9 @@ We update the existing steps:
 
 to be
 
-2. Otherwise, let startNode and startOffset be the node and offset of the **composed anchor** if direction is "forward" or of the **composed focus** else.
+2. If direction is "forward", let startNode and startOffset be the node and offset of the **composed anchor**. Else, let startNode and startOffset be the node and offset of the **composed focus**.
 3. ...
-4. Let endNode and endOffset be the node and offset of the **composed focus** if direction is "forward" or of the **composed anchor** else.
+4. If direction is "forward", let startNode and startOffset be the node and offset of the **composed focus**. Else, let startNode and startOffset be the node and offset of the **composed anchor**.
 
 ### Other Selection API spec updates
 
