@@ -6,9 +6,9 @@ Last updated: Jan 22, 2025
 
 ## Motivation
 
-The current specifications for implementing Selection API's getComposedRanges() says to use the range associated with the Selection, with the implication that this range behaves like a live range. However, a live range is defined as an object that implements Range, which only [contains](https://dom.spec.whatwg.org/#contained) nodes that have the same root as the range’s start node. If so, the live range cannot have endpoints that cross different trees (i.e. the shadow boundaries).
+The current specifications for implementing Selection API's getComposedRanges() says to use the range associated with the Selection, with the implication that this range behaves like a live range. However, a live range is defined as an object that implements Range, which only [contains](https://dom.spec.whatwg.org/#contained) nodes that have the same root as the range's start node. If so, the live range cannot have endpoints that cross different trees (i.e. the shadow boundaries).
 
-In DOM specification, we use the word “composed” to mean an object that crosses the shadow boundaries. For example, a click event’s composedPath() returns an array of EventTarget, propagated across shadow boundaries. When the Selection API’s getComposedRanges() accesses the associated range's start and end, it is not accessing start and end that cross boundaries. We propose fixing this by adding a new **Composed Live Range** concept.
+In DOM specification, we use the word “composed” to mean an object that crosses the shadow boundaries. For example, a click event's composedPath() returns an array of EventTarget, propagated across shadow boundaries. When the Selection API's getComposedRanges() accesses the associated range's start and end, it is not accessing start and end that cross boundaries. We propose fixing this by adding a new **Composed Live Range** concept.
 
 ## The Current Spec
 
@@ -26,8 +26,8 @@ However, a live range itself is defined as any object implementing a Range. [4]
 
 Further, the steps to “set the start or end” of a range restricts that the start and end endpoints to have the same root: [5]
 
-- “If range’s root is not equal to node’s root, or if bp is after the range’s end, set range’s end to bp.”
-- “If range’s root is not equal to node’s root, or if bp is before the range’s start, set range’s start to bp.”
+- “If range's root is not equal to node's root, or if bp is after the range's end, set range's end to bp.”
+- “If range's root is not equal to node's root, or if bp is before the range's start, set range's start to bp.”
 
 Hence, we conclude the specifications as it is currently does not support crossing shadow boundaries.
 
@@ -49,7 +49,7 @@ To go around this problem, UA implementations have defined an internal concept o
 
 Then, while the cached live range tracks start and end to have the same root, the frame selection can track endpoints with different roots (while staying within the document).
 
-Webkit/Gecko do something similar by being associated to a frame selection’s live range:
+Webkit/Gecko do something similar by being associated to a frame selection's live range:
 
 [https://github.com/WebKit/WebKit/blob/55d789ff3bf87148459a5bf12aa2b2c5ab547d56/Source/WebCore/page/DOMSelection.cpp#L77](https://github.com/WebKit/WebKit/blob/55d789ff3bf87148459a5bf12aa2b2c5ab547d56/Source/WebCore/page/DOMSelection.cpp#L77)
 
@@ -82,8 +82,8 @@ Issue: [https://github.com/w3c/selection-api/issues/168](https://github.com/w3c/
 
 Insertion does not change the range endpoint nodes. It might change the offset value:
 
-- If the inserted node is within the range and a sibling of end node, end node’s offset might increase.
-- If the inserted node is before and a sibling of start node, start node’s offset might increase.
+- If the inserted node is within the range and a sibling of end node, end node's offset might increase.
+- If the inserted node is before and a sibling of start node, start node's offset might increase.
 
 In either case, there is no tree traversal and crossing of shadow boundaries. Nodes within a shadow tree will only have parents within the shadow tree.
 
@@ -145,9 +145,9 @@ The Selection has a composed live range with start node {container.firstChild, 0
 
 When we call outerHost.remove():
 
-- Cache live range’s start and end nodes are not inclusive descendant of outerHost; no mutation changes.
-- Composed live range’s endNode is not an inclusive descendant of innerRoot nor innerRoot’s parent, can ignore step 5 and 7.
-- Composed live range’s endNode is a shadow-inclusive descendant of innerRoot. Its end should be set to parent of outerHost, container and its offset should be 1.
+- Cache live range's start and end nodes are not inclusive descendant of outerHost; no mutation changes.
+- Composed live range's endNode is not an inclusive descendant of innerRoot nor innerRoot's parent, can ignore step 5 and 7.
+- Composed live range's endNode is a shadow-inclusive descendant of innerRoot. Its end should be set to parent of outerHost, container and its offset should be 1.
 
 ```txt
 
@@ -187,7 +187,7 @@ console.log(shadowRoot);
 
 [https://dom.spec.whatwg.org/#concept-cd-replace](https://dom.spec.whatwg.org/#concept-cd-replace)
 
-No change necessary since we are comparing the live range’s endpoints with the node to replace only. There are no boundaries to cross in this check.
+No change necessary since we are comparing the live range's endpoints with the node to replace only. There are no boundaries to cross in this check.
 
 For example:
 
@@ -240,7 +240,7 @@ getSelection().getComposedRanges({ shadowRoots: [shadowRoot] })[0]; // endContai
 
 Issue: [https://github.com/whatwg/dom/issues/772](https://github.com/whatwg/dom/issues/772)
 
-A cached live range’s changes should be directly reflected on the composed range. This means that when a user uses the Range API to call setStart/setEnd, it should also update the Selection’s anchor and focus. This principle should be respected for Composed Live Range.
+A cached live range's changes should be directly reflected on the composed range. This means that when a user uses the Range API to call setStart/setEnd, it should also update the Selection's anchor and focus. This principle should be respected for Composed Live Range.
 
 Here is an interesting example I shared on the [github issue](https://github.com/whatwg/dom/issues/772#issuecomment-2491887033):
 
@@ -294,11 +294,10 @@ Change "To set the boundary point (node, offset) of a Range range, run these ste
 https://dom.spec.whatwg.org/#concept-range-bp-set
 
 Add new step 5:
-If range is associated with a composed live range,
-Set composed live range's start and end to range's start and end.
+If range is associated with a composed live range, set composed live range's start and end to range's start and end.
 ```
 
-Then, composed live range’s start will be {innerHost.firstChild, 5} and end will be {innerHost.firstChild, 6} as well.
+Then, composed live range's start will be {innerHost.firstChild, 5} and end will be {innerHost.firstChild, 6} as well.
 
 This option is better if we want to keep consistency between Range ⇔ Selection.
 
@@ -308,13 +307,19 @@ This option is better if we want to keep consistency between Range ⇔ Selection
 Change "To set the boundary point (node, offset) of a Range range, run these steps:"
 https://dom.spec.whatwg.org/#concept-range-bp-set
 
-Add in step 4 part If these steps were invoked as "set the start":
-3. If range is associated with a composed live range, set composed live range's start to range's start.
-Add in step 4 part If these steps were invoked as "set the end":
-3. If range is associated with a composed live range, set composed live range's end to range's end.
+Change If these steps were invoked as "set the start":
+1. If range's root is not equal to node's root, set range's end to bp.
+2. Otherwise, if bp is after the range's end, set range's end to bp. If range is the cached live range of a composed live range composed live range, set composed live range's end to bp.
+3. Set range's start to bp. If range is the cached live range of a composed live range composed live range, set composed live range's start to bp.
+
+Change If these steps were invoked as "set the end":
+1. If range's root is not equal to node's root, set range's start to bp.
+2. Otherwise, if bp is before the range's start, set range's start to bp. If range is the cached live range of a composed live range composed live range, set composed live range's start to bp.
+3. Set range's end to bp. If range is the cached live range of a composed live range composed live range, set composed live range's end to bp.
+
 ```
 
-Then, composed live range’s start will stay as {light.firstChild, 10}, but end node will become {innerHost.firstChild, 6}.
+Then, composed live range's start will stay as {light.firstChild, 10}, but end node will become {innerHost.firstChild, 6}.
 
 This option is better if we want to avoid the side effect of a range.setStart might cause the selection.focusNode to change unexpectedly.
 
@@ -353,7 +358,7 @@ The composed position of a boundary point (nodeA, offsetA) relative to a boundar
 
 ## To define in the Selection API spec
 
-Now that we have defined **Composed Live Range**, we need to update the language in the Selection API specification for everywhere we are referencing the associated range.
+To be able to use this newly defined **Composed Live Range**, we will need to update the language in the Selection API specification for everywhere we are referencing the associated range.
 
 **Change**
 
@@ -361,63 +366,99 @@ Each selection can be associated with a single [range](AbstractRange).
 
 To
 
-Each selection is associated with a single **composed** **live** **range**.
+Each selection can be associated with a single [range](**composed** **live** **range)**.
 
-**Change anchor/focus definition:**
+**Add new algorithm “Reset the range”**
+
+This algorithm is helpful for whenever we are setting the selection’s range, which happens in collapse(), collapseToStart(), collapseToEnd(), extend(), setBaseAndExtent(), selectAllChildren().
+
+To “set the range” of **this,** given the boundary points _start_ and _end_, run these steps:
+
+1. Let _newCachedRange_ be a new [Range](Range) object.
+2. <span style="text-decoration:underline;">set the start</span> of newCachedRange to start and <span style="text-decoration:underline;">set the end</span> of newCachedRange to end.
+3. Let _newRange_ be a new composed live range whose start is start and whose end is end.
+4. Set _newRange_’s cached live range to be newCachedRange.
+5. Set this’s range to _newRange_.
+
+**Change the definition of anchor/focus:**
 
 Each [selection](https://w3c.github.io/selection-api/#dfn-selection)s also have an anchor and a focus. If the [selection](https://w3c.github.io/selection-api/#dfn-selection)'s [range](https://dom.spec.whatwg.org/#concept-range) is null, its [anchor](https://w3c.github.io/selection-api/#dfn-anchor) and [focus](https://w3c.github.io/selection-api/#dfn-focus) are both null. If the [selection](https://w3c.github.io/selection-api/#dfn-selection)'s [range](https://dom.spec.whatwg.org/#concept-range) is not null and its [direction](https://w3c.github.io/selection-api/#dfn-direction) is [forwards](https://w3c.github.io/selection-api/#dfn-forwards), its [anchor](https://w3c.github.io/selection-api/#dfn-anchor) is the [range](https://dom.spec.whatwg.org/#concept-range)'s [start](https://dom.spec.whatwg.org/#concept-range-start), and its [focus](https://w3c.github.io/selection-api/#dfn-focus) is the [end](https://dom.spec.whatwg.org/#concept-range-end). Otherwise, its [focus](https://w3c.github.io/selection-api/#dfn-focus) is the [start](https://dom.spec.whatwg.org/#concept-range-start) and its [anchor](https://w3c.github.io/selection-api/#dfn-anchor) is the [end](https://dom.spec.whatwg.org/#concept-range-end).
 
 To
 
-Each [selection](https://w3c.github.io/selection-api/#dfn-selection) also has an anchor and a focus. If the [selection](https://w3c.github.io/selection-api/#dfn-selection)'s **composed live** **range** is null, its [anchor](https://w3c.github.io/selection-api/#dfn-anchor) and [focus](https://w3c.github.io/selection-api/#dfn-focus) are both null. If the [selection](https://w3c.github.io/selection-api/#dfn-selection)'s **composed live** **range** is not null and its [direction](https://w3c.github.io/selection-api/#dfn-direction) is [forwards](https://w3c.github.io/selection-api/#dfn-forwards), its [anchor](https://w3c.github.io/selection-api/#dfn-anchor) is the **composed** [range](https://dom.spec.whatwg.org/#concept-range)'s [start](https://dom.spec.whatwg.org/#concept-range-start), and its [focus](https://w3c.github.io/selection-api/#dfn-focus) is the [end](https://dom.spec.whatwg.org/#concept-range-end). Otherwise, its [focus](https://w3c.github.io/selection-api/#dfn-focus) is the [start](https://dom.spec.whatwg.org/#concept-range-start) and its [anchor](https://w3c.github.io/selection-api/#dfn-anchor) is the [end](https://dom.spec.whatwg.org/#concept-range-end).
+Each [selection](https://w3c.github.io/selection-api/#dfn-selection) also has an anchor and a focus. If the [selection](https://w3c.github.io/selection-api/#dfn-selection)'s **range** is null, its [anchor](https://w3c.github.io/selection-api/#dfn-anchor) and [focus](https://w3c.github.io/selection-api/#dfn-focus) are both null. If the [selection](https://w3c.github.io/selection-api/#dfn-selection)'s **range** is not null and its [direction](https://w3c.github.io/selection-api/#dfn-direction) is [forwards](https://w3c.github.io/selection-api/#dfn-forwards), its [anchor](https://w3c.github.io/selection-api/#dfn-anchor) is the **range**'s **cached live range**’s [start](https://dom.spec.whatwg.org/#concept-range-start), and its [focus](https://w3c.github.io/selection-api/#dfn-focus) is the [end](https://dom.spec.whatwg.org/#concept-range-end). Otherwise, its [focus](https://w3c.github.io/selection-api/#dfn-focus) is the [start](https://dom.spec.whatwg.org/#concept-range-start) and its [anchor](https://w3c.github.io/selection-api/#dfn-anchor) is the [end](https://dom.spec.whatwg.org/#concept-range-end).
 
-**Change getRangeAt(0):**
+### Selection Interface
 
-The method must throw an <code>[IndexSizeError](https://webidl.spec.whatwg.org/#indexsizeerror)</code> exception if is not <code>0</code>, or if [this](https://webidl.spec.whatwg.org/#this) is [empty](https://w3c.github.io/selection-api/#dfn-empty) or either [focus](https://w3c.github.io/selection-api/#dfn-focus) or [anchor](https://w3c.github.io/selection-api/#dfn-anchor) is not in the [document tree](https://dom.spec.whatwg.org/#concept-document-tree). Otherwise, it must return a reference to (not a copy of) <strong>[this](https://webidl.spec.whatwg.org/#this)'s composed live [range](https://dom.spec.whatwg.org/#concept-range)’s cached live range</strong>.
+**Update getRangeAt(0):**
 
-**Change setBaseAndExtent()**
+The method must throw an <code>[IndexSizeError](https://webidl.spec.whatwg.org/#indexsizeerror)</code> exception if index is not <code>0</code>, or if [this](https://webidl.spec.whatwg.org/#this) is [empty](https://w3c.github.io/selection-api/#dfn-empty) or either [focus](https://w3c.github.io/selection-api/#dfn-focus) or [anchor](https://w3c.github.io/selection-api/#dfn-anchor) is not in the [document tree](https://dom.spec.whatwg.org/#concept-document-tree). Otherwise, it must return a reference to (not a copy of) <strong>[this](https://webidl.spec.whatwg.org/#this)'s [range](https://dom.spec.whatwg.org/#concept-range)’s cached live range</strong>.
 
-5. If is <span style="text-decoration:underline;">composed [before](https://dom.spec.whatwg.org/#concept-range-bp-before)</span> ,
+**Do not update getComposedRanges()**
 
-   1. [set the start](https://dom.spec.whatwg.org/#concept-range-bp-set) of to and [set the end](https://dom.spec.whatwg.org/#concept-range-bp-set) of newRange to .
-   2. set this composed live range's [start](https://dom.spec.whatwg.org/#concept-range-start) to and this composed live range's [end](https://dom.spec.whatwg.org/#concept-range-end) to .
+No change necessary since range refers to the composed live range.
 
-6. Otherwise,
+**Do not update type**
 
-   3. [set the start](https://dom.spec.whatwg.org/#concept-range-bp-set) of to focus and [set the end](https://dom.spec.whatwg.org/#concept-range-bp-set) of newRange to anchor.
-   4. set this composed live range's [start](https://dom.spec.whatwg.org/#concept-range-start) to focus and this composed live range's [end](https://dom.spec.whatwg.org/#concept-range-end) to anchor.
+If we want this to match the actual selection, this should check whether the composed live range is collapsed.
 
-7. Set this’s composed live range’s cached live range to newRange.
+If we want to match existing spec, this should check whether the cached live range is collapsed.
+
+Personally, I think we should change to use the composed live range as that is what makes most sense to users. This is also what chrome is currently doing.
+
+**Update addRange()**
+
+3. Set **this’s range’s cached live range** to range by a strong reference (not by making a copy).
+
+**Update removeRange()**
+
+The method must make [this](https://webidl.spec.whatwg.org/#this) [empty](https://w3c.github.io/selection-api/#dfn-empty) by disassociating its [range](https://dom.spec.whatwg.org/#concept-range) if [this](https://webidl.spec.whatwg.org/#this)'s [range](https://dom.spec.whatwg.org/#concept-range)’s **cached live range **is . Otherwise, it must throw a <code>[NotFoundError](https://webidl.spec.whatwg.org/#notfounderror)</code>.
+
+**Update deleteFromDocument(), containsNode(), stringifier** to refer to the cached live range as well.
 
 **Update collapse()**
 
-7. Set\*\* **the **[start](https://dom.spec.whatwg.org/#concept-range-start) and the [end](https://dom.spec.whatwg.org/#concept-range-end) of this’s composed live range to (\***\*, \*\***).\*\*
+5. Otherwise, **reset the range** with (node, offset) and (node, offset).
 
-8. Set this’s composed live range’s live range to newRange.
+**Update collapseToEnd()**
 
-**Update selectAllChildren()**
+The method must follow these steps:
 
-6. Set the <span style="text-decoration:underline;">start</span> of this’s composed live range to (node, 0).
+1. If this is empty, throw InvalidStateError and abort these steps.
+2. Let bp be the end of this’s range.
+3. **Reset the range** with bp and bp.
 
-7. Set the <span style="text-decoration:underline;">end</span> of this’s composed live range to (node, childCount).
+**Update collapseToStart()**
 
-8. Set this’s composed live range’s live range to newRange.
+The method must follow these steps:
+
+1. If this is empty, throw InvalidStateError and abort these steps.
+2. Let bp be the start of this’s range.
+3. **Set the range** with bp and bp.
 
 **Update extend()**
 
-6. [...] Set the <span style="text-decoration:underline;">start</span> of this’s composed live range to oldAnchor and set the <span style="text-decoration:underline;">end</span> of this’s composed live range to newFocus.
+Replace steps 4-8
 
-7. [...] Set the <span style="text-decoration:underline;">start</span> of this’s composed live range to newFocus and set the <span style="text-decoration:underline;">end</span> of this’s composed live range to oldAnchor.
+4. If node’s root is not the same as this’s range’s root, **reset the range** with newFocus and newFocus.
 
-8. Set this’s composed live range’s live range to newRange.
+5. Otherwise, if oldAnchor is before or equal to newFocus, **reset the range** with oldAnchor and newFocus.
 
-**Update getComposedRanges()**
+6. Otherwise, **reset the range** with newFocus and oldAnchor.
 
-2. Otherwise, let be [start node](https://dom.spec.whatwg.org/#concept-range-start-node) and let startOffset be <span style="text-decoration:underline;">start offset</span> of the **composed live rang**e associated with [this](https://webidl.spec.whatwg.org/#this).
+**Change setBaseAndExtent()**
 
-3. Let be [end node](https://dom.spec.whatwg.org/#concept-range-end-node) and let be [end offset](https://dom.spec.whatwg.org/#concept-range-end-offset) of the **composed live range** associated with [this](https://webidl.spec.whatwg.org/#this).
+Replace steps 4-6
 
-4. Return an array consisting of new StaticRange whose start node is startNode, start offset is startOffset, end node is endNode, and end offset is endOffset.
+4. If anchor is [before](https://dom.spec.whatwg.org/#concept-range-bp-before) focus, **reset the range** with anchor and focus. Otherwise, set the range of this with focus and anchor.
+
+**Update selectAllChildren()**
+
+Replace steps 3-6
+
+3. Let childCount be the number of children of node.
+
+4. **Reset the range** with boundary point (node, 0) and boundary point (node, childCount).
 
 ## Issues
 
